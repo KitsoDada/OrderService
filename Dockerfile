@@ -1,9 +1,9 @@
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["OrderService.csproj", "."]
+COPY ["src/OrderService/OrderService.csproj", "."]
 RUN dotnet restore "OrderService.csproj"
-COPY . .
+COPY src/OrderService/. .
 RUN dotnet build "OrderService.csproj" -c Release -o /app/build
 
 # Publish stage
