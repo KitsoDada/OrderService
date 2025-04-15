@@ -7,8 +7,8 @@ on:
     branches: [ "main" ]
 
 env:
-  AZURE_CONTAINER_REGISTRY: ocornerr  # Update with your ACR name
-  APP_NAME: orderservice
+  AZURE_CONTAINER_REGISTRY: ocornerr  # Replace with your ACR name (no .azurecr.io)
+  APP_NAME: orderservice              # Used for tagging the image
 
 jobs:
   build-and-push:
@@ -39,10 +39,9 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: .  # The root of your repository (allowing access to all files)
-        file: OrderService/Dockerfile  # Path to your Dockerfile
+        context: .  # Root of the repo
+        file: OrderService/Dockerfile  # Path to Dockerfile
         push: true
         tags: |
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:latest
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ github.sha }}
-``
