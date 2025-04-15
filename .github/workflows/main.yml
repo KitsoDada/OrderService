@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  AZURE_CONTAINER_REGISTRY: ocornerr
+  AZURE_CONTAINER_REGISTRY: ocornerr  # Update with your ACR name
   APP_NAME: orderservice
 
 jobs:
@@ -39,8 +39,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: ./OrderService  # 👈 points to actual project folder
-        file: ./OrderService/Dockerfile
+        context: .            # Use the current directory
+        file: ./Dockerfile    # Dockerfile in the current directory
         push: true
         tags: |
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:latest
