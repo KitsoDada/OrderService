@@ -8,7 +8,7 @@ on:
 
 env:
   AZURE_CONTAINER_REGISTRY: ocornerr  # Update with your ACR name
-  APP_NAME: OrderService
+  APP_NAME: orderservice
 
 jobs:
   build-and-push:
