@@ -7,15 +7,19 @@ on:
     branches: [ "main" ]
 
 env:
-  AZURE_CONTAINER_REGISTRY: ocornerr  # Update with your ACR name
+  AZURE_CONTAINER_REGISTRY: ocorneracr3
   APP_NAME: orderservice
+  RESOURCE_GROUP: Online-cornerRG
+  AKS_CLUSTER: onlinecorner-aks
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
     - name: Checkout repository
@@ -39,9 +43,24 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: .            # Use the current directory
-        file: ./Dockerfile    # Dockerfile in the current directory
+        context: .                   # Adjust if orderservice lives in a subfolder
+        file: ./Dockerfile
         push: true
         tags: |
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:latest
-          ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ github.sha }}
+          ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
+
+    - name: Set AKS context
+      run: |
+        az aks get-credentials \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.AKS_CLUSTER }} \
+          --overwrite-existing
+
+    - name: Deploy to AKS
+      run: |
+        kubectl set image deployment/${{ env.APP_NAME }} \
+          ${{
+            env.APP_NAME
+          }}=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} \
+          --namespace default
