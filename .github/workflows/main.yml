@@ -57,8 +57,29 @@ jobs:
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:latest
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
 
-    - name: Deploy to AKS
+    - name: Get AKS name that contains 'onlinecorner'
+      id: get-aks
       run: |
-        kubectl set image deployment/${{ env.APP_NAME }} \
-          ${{ env.APP_NAME }}=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} \
-          --namespace default
+        AKS_NAME=$(az aks list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?contains(name, 'onlinecorner')].name" -o tsv)
+        if [ -z "$AKS_NAME" ]; then
+          echo "No AKS cluster found containing 'onlinecorner'. Exiting."
+          exit 1
+        fi
+        echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
+
+    - name: Connect to AKS cluster
+      run: |
+        az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.AKS_NAME }} --overwrite-existing
+
+    - name: Deploy or Update Deployment
+      run: |
+        DEPLOYMENT_NAME="${{ env.APP_NAME }}"
+        NAMESPACE="default"
+
+        if kubectl get deployment "$DEPLOYMENT_NAME" -n "$NAMESPACE" >/dev/null 2>&1; then
+          echo "Deployment '$DEPLOYMENT_NAME' exists. Performing rollout restart..."
+          kubectl set image deployment/"$DEPLOYMENT_NAME" "$DEPLOYMENT_NAME"=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} -n "$NAMESPACE"
+        else
+          echo "Deployment '$DEPLOYMENT_NAME' does not exist. Applying manifests..."
+          kubectl apply -f ./manifest -n "$NAMESPACE"
+        fi
