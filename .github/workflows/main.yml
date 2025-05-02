@@ -57,27 +57,6 @@ jobs:
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:latest
           ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
 
-    - name: Find AKS cluster matching 'onlinecorner'
-      id: aks_lookup
-      run: |
-        aks_name=$(az aks list --resource-group ${{ env.RESOURCE_GROUP }} \
-          --query "[?contains(name, 'onlinecorner')].name" -o tsv)
-
-        if [ -z "$aks_name" ]; then
-          echo "No AKS cluster found with name containing 'onlinecorner'"
-          exit 1
-        fi
-
-        echo "Found AKS cluster: $aks_name"
-        echo "AKS_CLUSTER_NAME=$aks_name" >> $GITHUB_ENV
-
-    - name: Get AKS credentials
-      run: |
-        az aks get-credentials \
-          --resource-group ${{ env.RESOURCE_GROUP }} \
-          --name ${{ env.AKS_CLUSTER_NAME }} \
-          --overwrite-existing
-
     - name: Deploy to AKS
       run: |
         kubectl set image deployment/${{ env.APP_NAME }} \
