@@ -60,9 +60,9 @@ jobs:
     - name: Get AKS name that contains 'onlinecorner'
       id: get-aks
       run: |
-        AKS_NAME=$(az aks list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?contains(name, 'onlinecorner')].name" -o tsv)
+        AKS_NAME=$(az aks list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?name=='aksOnline-cornerCluster'].name" -o tsv)
         if [ -z "$AKS_NAME" ]; then
-          echo "No AKS cluster found containing 'onlinecorner'. Exiting."
+          echo "No AKS cluster found with the name 'aksOnline-cornerCluster'. Exiting."
           exit 1
         fi
         echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
