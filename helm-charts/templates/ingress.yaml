@@ -1,0 +1,26 @@
+# helm-charts/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "eshop.fullname" . }}-ingress
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /orders/*
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "eshop.fullname" . }}-orderservice
+            port:
+              number: 80
+      - path: /products/*
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "eshop.fullname" . }}-productservice
+            port:
+              number: 80

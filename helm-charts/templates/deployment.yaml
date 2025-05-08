@@ -1,0 +1,32 @@
+# helm-charts/templates/orderservice/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eshop.fullname" . }}-orderservice
+  labels:
+    {{- include "eshop.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.orderservice.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "eshop.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: orderservice
+  template:
+    metadata:
+      labels:
+        {{- include "eshop.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: orderservice
+    spec:
+      containers:
+        - name: orderservice
+          image: "{{ .Values.orderservice.image.repository }}:{{ .Values.orderservice.image.tag }}"
+          imagePullPolicy: {{ .Values.orderservice.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "eshop.fullname" . }}-orderservice-config
+          resources:
+            {{- toYaml .Values.orderservice.resources | nindent 12 }}
